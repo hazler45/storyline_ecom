@@ -1,9 +1,56 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
+import axios from "axios";
+import { useState,useEffect } from "react";
 
-const Navbar = () => {
+async function getUser(token) {
+  try {
+    const res = await axios.post(
+      `${process.env.REACT_APP_API_URL}/auth/users`,
+      {},
+      {
+        headers: {
+          authorization: token,
+        },
+      }
+    );
+    const user = res.data;
+    return { user };
+  } catch (error) {
+    return { error };
+  }
+}
+
+function CheckLogin() {
+  const [checkLogin, setCheckLogin] = useState(false);
+  useEffect(() => {
+    async function getToken() {
+      const token = await sessionStorage.getItem("access-token");
+      if (token) {
+        try {
+          const { user, error } = await getUser(token);
+          if(error) throw new Error(error)
+          setCheckLogin(true);
+          return {token}
+          
+        } catch (error) {
+            return {error}
+        }
+      }
+      return {token}
+    }
+    getToken();
+  });
+  return {
+    checkLogin,
+  };
+}
+
+
+const Navbar =  () => {
   const state = useSelector((state) => state.handleCart);
+  const {token} = CheckLogin();
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light py-3 sticky-top">
       <div className="container">
