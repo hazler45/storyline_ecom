@@ -3,8 +3,56 @@ import { Footer, Navbar } from "../components";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import Esewa from "./Esewa";
+import { useEffect,useState } from "react";
+import axios from "axios";
+
+
+async function getUser(token) {
+  try {
+    const res = await axios.post(
+      `${process.env.REACT_APP_API_URL}/users/login`,{},
+      {
+        headers: {
+          authorization: token,
+        }
+      }
+    );
+    const user = res.data;
+    return { user };
+  } catch (error) {
+    return { error };
+  }
+}
+
 const Checkout = () => {
   const state = useSelector((state) => state.handleCart);
+  const [userData,setUserData] = useState();
+  const [checkLogin,setCheckLogin] = useState(false);
+
+  //formdata
+  const [firstName,setFirstName] = useState("");
+  const [lastName,setLastName] = useState("");
+  const [email,setEmail] = useState("");
+  const [address,setAddress] = useState("");
+  useEffect(()=>{
+    const token = sessionStorage.getItem("access-token");
+    async function user(){
+      try {
+        const { user, error } = await getUser(token);
+        if (error) throw new Error(error)
+        setUserData(user[0])
+        setFirstName(user[0].name)
+        setEmail(user[0].email)
+        setAddress(user[0].address)
+        setCheckLogin(true);
+      } catch (error) {
+        return { error }
+      }
+    }
+    user();
+  },[])
+
+
 
   const EmptyCart = () => {
     return (
@@ -32,6 +80,8 @@ const Checkout = () => {
     state.map((item) => {
       return (totalItems += item.qty);
     });
+
+   
     return (
       <>
         <div className="container py-5">
@@ -80,7 +130,8 @@ const Checkout = () => {
                           className="form-control"
                           id="firstName"
                           placeholder=""
-                          value=""
+                          value={firstName}
+                          
                           required
                         />
                         <div className="invalid-feedback">
@@ -97,7 +148,7 @@ const Checkout = () => {
                           className="form-control"
                           id="lastName"
                           placeholder=""
-                          value=""
+                          value={lastName}
                           required
                         />
                         <div className="invalid-feedback">
@@ -113,6 +164,7 @@ const Checkout = () => {
                           type="email"
                           className="form-control"
                           id="email"
+                          value={email}
                           placeholder="you@example.com"
                           required
                         />
@@ -132,68 +184,20 @@ const Checkout = () => {
                           id="address"
                           placeholder="1234 Main St"
                           required
+                          value={address}
                         />
                         <div className="invalid-feedback">
                           Please enter your shipping address.
                         </div>
                       </div>
 
-                      <div className="col-12">
-                        <label for="address2" className="form-label">
-                          Address 2{" "}
-                          <span className="text-muted">(Optional)</span>
-                        </label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          id="address2"
-                          placeholder="Apartment or suite"
-                        />
-                      </div>
+                    
 
-                      <div className="col-md-5 my-1">
-                        <label for="country" className="form-label">
-                          Country
-                        </label>
-                        <br />
-                        <select className="form-select" id="country" required>
-                          <option value="">Choose...</option>
-                          <option>India</option>
-                        </select>
-                        <div className="invalid-feedback">
-                          Please select a valid country.
-                        </div>
-                      </div>
+                     
 
-                      <div className="col-md-4 my-1">
-                        <label for="state" className="form-label">
-                          State
-                        </label>
-                        <br />
-                        <select className="form-select" id="state" required>
-                          <option value="">Choose...</option>
-                          <option>Punjab</option>
-                        </select>
-                        <div className="invalid-feedback">
-                          Please provide a valid state.
-                        </div>
-                      </div>
+                     
 
-                      <div className="col-md-3 my-1">
-                        <label for="zip" className="form-label">
-                          Zip
-                        </label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          id="zip"
-                          placeholder=""
-                          required
-                        />
-                        <div className="invalid-feedback">
-                          Zip code required.
-                        </div>
-                      </div>
+                     
                     </div>
 
                     <hr className="my-4" />
@@ -201,89 +205,15 @@ const Checkout = () => {
                     <h4 className="mb-3">Payment</h4>
                     <h5 className="py-3">By Esewa</h5>
                     <div className="row gy-3">
-                      <Esewa />
+                      <Esewa userData={userData}/>
                     </div>
 
-                    <h4 className="p-3 text-center fw-bold ">OR</h4>
-                    <h5 className="py-3">By Card</h5>
-                    <div className="row gy-3">
-                      <div className="col-md-6">
-                        <label for="cc-name" className="form-label">
-                          Name on card
-                        </label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          id="cc-name"
-                          placeholder=""
-                          required
-                        />
-                        <small className="text-muted">
-                          Full name as displayed on card
-                        </small>
-                        <div className="invalid-feedback">
-                          Name on card is required
-                        </div>
-                      </div>
-
-                      <div className="col-md-6">
-                        <label for="cc-number" className="form-label">
-                          Credit card number
-                        </label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          id="cc-number"
-                          placeholder=""
-                          required
-                        />
-                        <div className="invalid-feedback">
-                          Credit card number is required
-                        </div>
-                      </div>
-
-                      <div className="col-md-3">
-                        <label for="cc-expiration" className="form-label">
-                          Expiration
-                        </label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          id="cc-expiration"
-                          placeholder=""
-                          required
-                        />
-                        <div className="invalid-feedback">
-                          Expiration date required
-                        </div>
-                      </div>
-
-                      <div className="col-md-3">
-                        <label for="cc-cvv" className="form-label">
-                          CVV
-                        </label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          id="cc-cvv"
-                          placeholder=""
-                          required
-                        />
-                        <div className="invalid-feedback">
-                          Security code required
-                        </div>
-                      </div>
-                    </div>
+                    {/* <h4 className="p-3 text-center fw-bold ">OR</h4> */}
+                   
 
                     <hr className="my-4" />
 
-                    <button
-                      className="w-100 btn btn-primary "
-                      type="submit"
-                      disabled
-                    >
-                      Continue to checkout
-                    </button>
+                
                   </form>
                 </div>
               </div>

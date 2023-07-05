@@ -1,18 +1,17 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
-import axios from "axios";
-import { useState,useEffect } from "react";
 
+import { useEffect,useState } from "react";
+import axios from "axios";
 async function getUser(token) {
   try {
     const res = await axios.post(
-      `${process.env.REACT_APP_API_URL}/auth/users`,
-      {},
+      `${process.env.REACT_APP_API_URL}/users/login`,{},
       {
         headers: {
           authorization: token,
-        },
+        }
       }
     );
     const user = res.data;
@@ -22,35 +21,34 @@ async function getUser(token) {
   }
 }
 
-function CheckLogin() {
-  const [checkLogin, setCheckLogin] = useState(false);
-  useEffect(() => {
-    async function getToken() {
-      const token = await sessionStorage.getItem("access-token");
-      if (token) {
-        try {
-          const { user, error } = await getUser(token);
-          if(error) throw new Error(error)
-          setCheckLogin(true);
-          return {token}
-          
-        } catch (error) {
-            return {error}
-        }
-      }
-      return {token}
-    }
-    getToken();
-  });
-  return {
-    checkLogin,
-  };
-}
-
-
 const Navbar =  () => {
   const state = useSelector((state) => state.handleCart);
-  const {token} = CheckLogin();
+  const [checkLogin,setCheckLogin] = useState(false);
+  const [userData,setUserData] = useState();
+  useEffect(()=>{
+    const token = sessionStorage.getItem("access-token");
+    async function user(){
+      try {
+        const { user, error } = await getUser(token);
+        if (error) throw new Error(error)
+        setCheckLogin(true);
+        setUserData(user[0])
+      } catch (error) {
+        return { error }
+      }
+    }
+    user();
+  },[])
+
+  async function signout(){
+    const token = sessionStorage.getItem("access-token");
+    try {
+      sessionStorage.clear();
+      window.location.reload(false);
+    } catch (error) {
+      
+    }
+  }
   return (
     <nav className="navbar navbar-expand-lg navbar-light bg-light py-3 sticky-top">
       <div className="container">
@@ -117,12 +115,33 @@ const Navbar =  () => {
             </li>
           </ul>
           <div className="buttons text-center">
-            <NavLink to="/login" className="btn btn-outline-dark m-2">
-              <i className="fa fa-sign-in-alt mr-1"></i> Login
-            </NavLink>
-            <NavLink to="/register" className="btn btn-outline-dark m-2">
-              <i className="fa fa-user-plus mr-1"></i> Register
-            </NavLink>
+            
+              <i className="fa fa-sign-in-alt mr-1"></i> 
+              {
+                checkLogin ?
+                <div className="btn btn-outline-dark m-2">
+                   {userData.name}
+                </div>
+               
+                :
+                <NavLink to="/login" className="btn btn-outline-dark m-2">
+                Login
+                </NavLink>
+              }
+            
+           
+              
+              {
+                checkLogin?
+                <div onClick={(e)=>signout(e)} className="btn btn-outline-dark m-2">
+                <i className="fa fa-user-plus mr-1"></i> SignOut
+                </div>
+                :
+                <NavLink to="/register" className="btn btn-outline-dark m-2">
+                <i className="fa fa-user-plus mr-1"></i> Register
+                </NavLink>
+              }
+            
             <NavLink to="/cart" className="btn btn-outline-dark m-2">
               <i className="fa fa-cart-shopping mr-1"></i> Cart ({state.length}){" "}
             </NavLink>

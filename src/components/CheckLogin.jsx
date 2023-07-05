@@ -18,27 +18,23 @@ async function getUser(token) {
     return { error };
   }
 }
-export  function CheckLogin() {
+export async function CheckLogin() {
   const [checkLogin, setCheckLogin] = useState(false);
-  useEffect(() => {
-    async function getToken() {
-      const token = await sessionStorage.getItem("access-token");
-      if (token) {
-        try {
-          const { user, error } = await getUser(token);
-          if(error) throw new Error(error)
-          setCheckLogin(true);
-          return {token}
-          
-        } catch (error) {
-            return {error}
-        }
-      }
-      return {token}
+  const [authToken, setAuthToken] = useState();
+  const [userData, setUserData] = useState();
+
+  const token = await sessionStorage.getItem("access-token");
+  if (token) {
+    try {
+      const { user, error } = await getUser(token);
+      if (error) throw new Error(error)
+      setCheckLogin(true);
+      setUserData(user)
+    } catch (error) {
+      return { error }
     }
-    getToken();
-  });
-  return {
-    checkLogin,
-  };
+  }
+  setAuthToken(token)
+
+  return { userData, authToken, checkLogin }
 }

@@ -11,3 +11,4 @@ export { default as PageNotFound } from './PageNotFound';
 
 // Esewa
 export { default as Esewa } from './Esewa';
+export { default as KhaltiPayment } from './Khalti';
